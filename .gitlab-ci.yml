@@ -1,0 +1,100 @@
+# This file is a template, and might need editing before it works on your project.
+# This is a sample GitLab CI/CD configuration file that should run without any modifications.
+# It demonstrates a basic 3 stage CI/CD pipeline. Instead of real tests or scripts,
+# it uses echo commands to simulate the pipeline execution.
+#
+# A pipeline is composed of independent jobs that run scripts, grouped into stages.
+# Stages run in sequential order, but jobs within stages run in parallel.
+#
+# For more information, see: https://docs.gitlab.com/ee/ci/yaml/index.html#stages
+#
+# You can copy and paste this template into a new `.gitlab-ci.yml` file.
+# You should not add this template to an existing `.gitlab-ci.yml` file by using the `include:` keyword.
+#
+# To contribute improvements to CI/CD templates, please follow the Development guide at:
+# https://docs.gitlab.com/ee/development/cicd/templates.html
+# This specific template is located at:
+# https://gitlab.com/gitlab-org/gitlab/-/blob/master/lib/gitlab/ci/templates/Getting-Started.gitlab-ci.yml
+
+
+# Official language image. Look for the different tagged releases at:
+# https://hub.docker.com/r/library/python/tags/
+image: python:3.10-bullseye
+
+
+
+# Change pip's cache directory to be inside the project directory since we can
+# only cache local items.
+variables:
+  PIP_CACHE_DIR: "$CI_PROJECT_DIR/.cache/pip"
+
+cache:
+  paths:
+    - .cache/pip
+    - venv/
+
+before_script:
+  # Install Pandoc
+
+  - cat /proc/cpuinfo
+  - cat /proc/meminfo
+  - wget https://github.com/jgm/pandoc/releases/download/2.19.2/pandoc-2.19.2-1-amd64.deb
+  - dpkg -i pandoc-2.19.2-1-amd64.deb
+  # Install pipenv without lock file
+  - pip install --upgrade pip
+  - pip install Cython --install-option="--no-cython-compile"
+  - pip install pipenv
+  - rm -f Pipfile.lock
+  - df -h
+  - pipenv lock --pre --clear
+  - pipenv install
+  # install latex
+  - apt-get update
+  - apt-get install texlive-xetex -y
+  - apt-get install texlive-fonts-recommended -y
+  - apt-get install texlive-plain-generic -y
+  - mkdir files
+  # BaseTex Anpassung
+  - cp reports/base.tex.j2 /root/.local/share/virtualenvs/cakeommender-70zyHxYW/share/jupyter/nbconvert/templates/latex/base.tex.j2
+stages:
+  - build
+
+build-job:
+  stage: build
+  script:
+    # # report 2
+    # # create jupyter files
+    # - pipenv run jupytext --to notebook reports/prereport2.py
+    # - pipenv run jupytext --to notebook tools/dataretrieval.py
+    # - pipenv run jupytext --to notebook eda/eda_movies.py
+    # - pipenv run jupytext --to notebook eda/eda_crew_casts.py
+    # - pipenv run jupytext --to notebook eda/ratings.py
+    # # merge jupyter files
+    # - pipenv run nbmerge reports/prereport2.ipynb tools/dataretrieval.ipynb eda/eda_movies.ipynb eda/eda_crew_casts.ipynb eda/ratings.ipynb  -o reports/report2.ipynb
+    # # create report as pdf
+    # - pipenv run jupyter nbconvert --execute --no-input reports/report2.ipynb --to pdf --output ../files/report2.pdf
+    # # report 3
+    # # create jupyter files
+    # - pipenv run jupytext --to notebook reports/prereport3.py
+    # - pipenv run jupytext --to notebook modelling/random_cakeommender.py
+    # - pipenv run jupytext --to notebook modelling/base_cakeommender.py
+    # - pipenv run jupytext --to notebook modelling/tfidf_cakeommender.py
+    # - pipenv run jupytext --to notebook modelling/bert_cakeommender.py
+    # - pipenv run jupytext --to notebook modelling/sbert_cakeommender.py
+    # - pipenv run jupytext --to notebook modelling/best_combined_cakeommender.py
+
+    # # merge jupyter files
+    # - pipenv run nbmerge reports/prereport3.ipynb modelling/random_cakeommender.ipynb modelling/base_cakeommender.ipynb modelling/tfidf_cakeommender.ipynb modelling/bert_cakeommender.ipynb modelling/sbert_cakeommender.ipynb modelling/best_combined_cakeommender.ipynb -o reports/report3.ipynb
+    # # create report as pdf
+    # - pipenv run jupyter nbconvert --execute --no-input reports/report3.ipynb --to pdf --output ../files/report3.pdf
+    
+    # report 4
+    # create jupyter files
+    - pipenv run jupytext --to notebook reports/report4.py
+    - pipenv run nbmerge reports/report4.ipynb -o report4.ipynb
+    # create report as pdf
+    - pipenv run jupyter nbconvert --execute --no-input report4.ipynb --to pdf --output ../files/report4.pdf
+
+  artifacts:
+    paths:
+      - files
